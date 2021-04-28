@@ -4,6 +4,7 @@ import org.apache.beam.examples.common.ExampleBigQueryTableOptions;
 import org.apache.beam.examples.common.ExampleOptions;
 import org.apache.beam.examples.common.WriteOneFilePerWindow;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
@@ -13,6 +14,8 @@ import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.joda.time.Duration;
+
+import java.io.IOException;
 
 
 public class StreamingWordCount {
@@ -39,7 +42,7 @@ public class StreamingWordCount {
         void setInputTopic(String topic);
     }
 
-    static void runStreamingWordCount(Options options) {
+    static void runStreamingWordCount(Options options) throws IOException {
         options.setStreaming(true);
 
         Pipeline pipeline = Pipeline.create(options);
@@ -50,9 +53,16 @@ public class StreamingWordCount {
                 .apply(new WordCount.CountWords())
                 .apply(MapElements.via(new WordCount.FormatAsTextFn()))
                 .apply("Write Files to GCS", new WriteOneFilePerWindow(options.getOutput(), options.getNumShards()));
+
+        PipelineResult result = pipeline.run();
+        try {
+            result.waitUntilFinish();
+        } catch (Exception exc) {
+            result.cancel();
+        }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Options options = PipelineOptionsFactory.fromArgs(args).withValidation().as(Options.class);
 
         runStreamingWordCount(options);
