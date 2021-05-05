@@ -1,15 +1,14 @@
 package org.apache.beam.examples;
 
-import org.apache.beam.examples.common.ExampleBigQueryTableOptions;
-import org.apache.beam.examples.common.ExampleOptions;
 import org.apache.beam.examples.common.WriteOneFilePerWindow;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
-import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
+import org.apache.beam.sdk.options.Validation;
+import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -19,27 +18,21 @@ import java.io.IOException;
 
 
 public class StreamingWordCount {
-    static final int WINDOW_SIZE = 10; // Default window duration in minutes
+    static final int WINDOW_SIZE = 5; // Default window duration in minutes
     static final int NUM_SHARDS = 1;// Default number of shards to produce per window
+    static final String BUCKET_PATH = "gs://pub_sub_example/output";
 
-    public interface Options
-            extends WordCount.WordCountOptions, ExampleOptions, ExampleBigQueryTableOptions, StreamingOptions {
-        @Description("Fixed window duration, in minutes")
-        @Default.Integer(WINDOW_SIZE)
-        Integer getWindowSize();
-
-        void setWindowSize(Integer value);
-
-        @Description("Fixed number of shards to produce per window")
-        @Default.Integer(NUM_SHARDS)
-        Integer getNumShards();
-
-        void setNumShards(Integer numShards);
-
+    public interface Options extends StreamingOptions {
         @Description("Input PubSub topic of the form 'projects/<PROJECT>/topics/<TOPIC>'")
-        String getInputTopic();
+        ValueProvider<String> getInputTopic();
 
-        void setInputTopic(String topic);
+        void setInputTopic(ValueProvider<String> topic);
+
+        /*@Description("Path of the dir to write to")
+        @Validation.Required
+        ValueProvider<String> getOutput();
+
+        void setOutput(ValueProvider<String> value);*/
     }
 
     static void runStreamingWordCount(Options options) throws IOException {
@@ -49,10 +42,10 @@ public class StreamingWordCount {
 
         pipeline
                 .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
-                .apply(Window.into(FixedWindows.of(Duration.standardMinutes(options.getWindowSize()))))
+                .apply(Window.into(FixedWindows.of(Duration.standardMinutes(WINDOW_SIZE))))
                 .apply(new WordCount.CountWords())
                 .apply(MapElements.via(new WordCount.FormatAsTextFn()))
-                .apply("Write Files to GCS", new WriteOneFilePerWindow(options.getOutput(), options.getNumShards()));
+                .apply("Write Files to GCS", new WriteOneFilePerWindow(BUCKET_PATH, NUM_SHARDS));
 
         PipelineResult result = pipeline.run();
         try {
