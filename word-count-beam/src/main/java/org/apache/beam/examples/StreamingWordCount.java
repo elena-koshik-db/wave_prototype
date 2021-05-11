@@ -6,7 +6,6 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
-import org.apache.beam.sdk.options.Validation;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
@@ -17,19 +16,13 @@ import org.joda.time.Duration;
 public class StreamingWordCount {
     static final int WINDOW_SIZE = 5; // Default window duration in minutes
     static final int NUM_SHARDS = 1;// Default number of shards to produce per window
-    static final String BUCKET_PATH = "gs://pub_sub_example/output";
+    static final String BUCKET_PATH = "gs://pub_sub_example/output/test";
 
     public interface Options extends StreamingOptions {
         @Description("Input PubSub topic of the form 'projects/<PROJECT>/topics/<TOPIC>'")
         ValueProvider<String> getInputTopic();
 
         void setInputTopic(ValueProvider<String> topic);
-
-        /*@Description("Path of the dir to write to")
-        @Validation.Required
-        ValueProvider<String> getOutput();
-
-        void setOutput(ValueProvider<String> value);*/
     }
 
     static void runStreamingWordCount(Options options) {
