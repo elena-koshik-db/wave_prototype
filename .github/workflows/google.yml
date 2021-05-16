@@ -4,6 +4,8 @@ on: workflow_dispatch
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  DATAFLOW_TEMPLATE_PATH: "gcr.io/$PROJECT_ID/samples/dataflow/word-count-streaming-beam:latest"
+  DATAFLOW_TEMPLATE_IMAGE: "gs://pub_sub_example/samples/dataflow/templates/word-count-streaming-beam.json"
 
 jobs:
   setup-build-publish-deploy:
@@ -26,5 +28,5 @@ jobs:
         run: |-
           gcloud builds submit \
             --quiet \
+            --substitutions=TEMPLATE_PATH=$DATAFLOW_TEMPLATE_PATH,TEMPLATE_IMAGE=$DATAFLOW_TEMPLATE_IMAGE
             word-count-beam/
-#            --tag "gcr.io/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA"
