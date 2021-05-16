@@ -6,7 +6,6 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
-import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -20,9 +19,9 @@ public class StreamingWordCount {
 
     public interface Options extends StreamingOptions {
         @Description("Input PubSub topic of the form 'projects/<PROJECT>/topics/<TOPIC>'")
-        ValueProvider<String> getInputTopic();
+        String getInputTopic();
 
-        void setInputTopic(ValueProvider<String> topic);
+        void setInputTopic(String topic);
     }
 
     static void runStreamingWordCount(Options options) {
