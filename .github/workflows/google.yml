@@ -4,8 +4,8 @@ on: workflow_dispatch
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  TEMPLATE_PATH: "gcr.io/$PROJECT_ID/samples/dataflow/word-count-streaming-beam:latest"
-  TEMPLATE_IMAGE: "gs://pub_sub_example/samples/dataflow/templates/word-count-streaming-beam.json"
+  TEMPLATE_PATH: gs://pub_sub_example/samples/dataflow/templates/word-count-streaming-beam.json
+  TEMPLATE_IMAGE: gcr.io/${{ secrets.GKE_PROJECT }}/samples/dataflow/word-count-streaming-beam:latest
 
 jobs:
   setup-build-publish-deploy:
