@@ -19,18 +19,16 @@ resource "google_cloud_scheduler_job" "job" {
   }
 }
 
-resource "google_dataflow_job" "pub_sub_dataflow_job" {
-  name = "test-terraform-dataflow-job"
-  project = var.project_id
-  zone = var.zone
-
-  template_gcs_path = var.template_gcs_path
-  temp_gcs_location = var.temp_gcs_location
-
+resource "google_dataflow_flex_template_job" "pub_sub_dataflow_job" {
+  provider                = google-beta
+  project                 = var.project_id
+  name                    = "dataflow-flextemplates-job"
+  region                  = var.region
+  container_spec_gcs_path = var.template_gcs_path
   parameters = {
     inputTopic = google_pubsub_topic.topic.id
   }
 
-  on_delete = "cancel"
+  on_delete               = "drain"
 }
 
