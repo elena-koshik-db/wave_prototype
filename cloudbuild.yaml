@@ -2,4 +2,9 @@ steps:
   - name: maven:3-jdk-8
     entrypoint: mvn
     args: ['clean','package','-Dmaven.test.skip=true','-P','dataflow-runner']
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: 'build-dataflow-template'
+    entrypoint: gcloud
+    args: [ 'dataflow', 'flex-template', 'build', '$TEMPLATE_PATH', 'image-gcr-path', '$TEMPLATE_IMAGE', '--sdk-language', 'JAVA', '--flex-template-base-image', 'JAVA8', '--metadata-file', 'word-count-beam/spec/metadata.json' ]
 logsBucket: 'gs://sandbox-307310_cloudbuild_logs'
