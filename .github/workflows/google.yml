@@ -28,5 +28,5 @@ jobs:
         run: |-
           gcloud builds submit \
             --quiet \
-            --substitutions=_TEMPLATE_PATH=$TEMPLATE_PATH,_TEMPLATE_IMAGE=$TEMPLATE_IMAGE
+            --substitutions=_TEMPLATE_PATH=$TEMPLATE_PATH,_TEMPLATE_IMAGE=$TEMPLATE_IMAGE \
             word-count-beam/
