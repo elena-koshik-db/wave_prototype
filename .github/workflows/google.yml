@@ -24,12 +24,12 @@ jobs:
           service_account_key: ${{ secrets.GKE_SA_KEY }}
           project_id: ${{ secrets.GKE_PROJECT }}
 
-      - name: Build
-        run: |-
-          gcloud builds submit \
-            --quiet \
-            --substitutions=_TEMPLATE_PATH=$TEMPLATE_PATH,_TEMPLATE_IMAGE=$TEMPLATE_IMAGE \
-            word-count-beam/
+#      - name: Build
+#        run: |-
+#          gcloud builds submit \
+#            --quiet \
+#            --substitutions=_TEMPLATE_PATH=$TEMPLATE_PATH,_TEMPLATE_IMAGE=$TEMPLATE_IMAGE \
+#            word-count-beam/
 
       - name: Get job ID
         id: get-job-id
@@ -37,7 +37,7 @@ jobs:
 
       - name: Stop active job
         if: steps.get-job-id.outputs.job-id != ''
-        run: gcloud dataflow jobs drain steps.get-job-id.outputs.job-id
+        run: gcloud dataflow jobs drain ${{ steps.get-job-id.outputs.job-id }} --region $REGION
 
       - name: Start a new job
         run: |-
