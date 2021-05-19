@@ -4,8 +4,10 @@ on: workflow_dispatch
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  REGION: europe-west3
   TEMPLATE_PATH: gs://pub_sub_example/samples/dataflow/templates/word-count-streaming-beam.json
   TEMPLATE_IMAGE: gcr.io/${{ secrets.GKE_PROJECT }}/samples/dataflow/word-count-streaming-beam:latest
+  INPUT_TOPIC: projects/${{ secrets.GKE_PROJECT }}/topics/job-topic
 
 jobs:
   setup-build-publish-deploy:
@@ -16,17 +18,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Setup gcloud CLI
       - uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           service_account_email: ${{ secrets.GKE_SA_EMAIL }}
           service_account_key: ${{ secrets.GKE_SA_KEY }}
           project_id: ${{ secrets.GKE_PROJECT }}
 
-      # Build and push image to Google Container Registry
       - name: Build
         run: |-
           gcloud builds submit \
             --quiet \
             --substitutions=_TEMPLATE_PATH=$TEMPLATE_PATH,_TEMPLATE_IMAGE=$TEMPLATE_IMAGE \
             word-count-beam/
+
+      - name: Get job ID
+        id: get-job-id
+        run: echo "::set-output name=job-id::$(gcloud dataflow jobs list --status=active | sed -n '2s/^\([^ ]*\).*$/\1/p')"
+
+      - name: Stop active job
+        if: steps.get-job-id.outputs.job-id != ''
+        run: gcloud dataflow jobs drain steps.get-job-id.outputs.job-id
+
+      - name: Start a new job
+        run: |-
+          gcloud dataflow flex-template run "dataflow-flextemplate-job-`date +%Y%m%d-%H%M%S`" \
+              --template-file-gcs-location $TEMPLATE_PATH \
+              --parameters inputTopic=$INPUT_TOPIC \
+              --region $REGION
