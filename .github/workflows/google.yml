@@ -7,6 +7,7 @@ env:
   REGION: europe-west3
   TEMPLATE_PATH: gs://pub_sub_example/samples/dataflow/templates/word-count-streaming-beam.json
   TEMPLATE_IMAGE: gcr.io/${{ secrets.GKE_PROJECT }}/samples/dataflow/word-count-streaming-beam:latest
+  JOB_STAGING_LOCATION: gs://pub_sub_example/tmp_dir
   INPUT_TOPIC: projects/${{ secrets.GKE_PROJECT }}/topics/job-topic
   JOB_NAME_PREFIX: dataflow-flextemplate-job
 
@@ -40,7 +41,7 @@ jobs:
         if: steps.get-job-id.outputs.job-id != ''
         run: gcloud dataflow jobs drain ${{ steps.get-job-id.outputs.job-id }} --region $REGION
 
-      - name: Wait
+      - name: Wait for job completion
         if: steps.get-job-id.outputs.job-id != ''
         run: |-
           while [ ! -z "$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --region=$REGION | sed -n '2s/^\([^ ]*\).*$/\1/p')" ]; do
@@ -52,4 +53,5 @@ jobs:
           gcloud dataflow flex-template run "$JOB_NAME_PREFIX-`date +%Y%m%d-%H%M%S`" \
               --template-file-gcs-location $TEMPLATE_PATH \
               --parameters inputTopic=$INPUT_TOPIC \
+              --staging-location $JOB_STAGING_LOCATION
               --region $REGION
