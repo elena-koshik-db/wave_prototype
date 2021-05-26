@@ -26,6 +26,10 @@ jobs:
           distribution: 'adopt'
           java-version: '8'
 
+      - name: Build with Maven
+        working-directory: ./word-count-beam
+        run: mvn --batch-mode --update-snapshots verify
+
 #      - uses: google-github-actions/setup-gcloud@v0.2.1
 #        with:
 #          service_account_email: ${{ secrets.GKE_SA_EMAIL }}
