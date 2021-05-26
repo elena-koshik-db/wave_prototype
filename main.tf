@@ -19,3 +19,8 @@ resource "google_cloud_scheduler_job" "job" {
   }
 }
 
+resource "google_storage_bucket" "pub_sub_example" {
+  name          = "pub_sub_example"
+  location      = var.region
+  force_destroy = true
+}
