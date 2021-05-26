@@ -28,7 +28,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: ./word-count-beam
-        run: mvn --batch-mode --update-snapshots verify
+        run: mvn --batch-mode --update-snapshots package -P dataflow-runner
 
 #      - uses: google-github-actions/setup-gcloud@v0.2.1
 #        with:
