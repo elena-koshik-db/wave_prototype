@@ -30,11 +30,23 @@ jobs:
         working-directory: ./word-count-beam
         run: mvn --batch-mode --update-snapshots package -P dataflow-runner
 
-#      - uses: google-github-actions/setup-gcloud@v0.2.1
-#        with:
-#          service_account_email: ${{ secrets.GKE_SA_EMAIL }}
-#          service_account_key: ${{ secrets.GKE_SA_KEY }}
-#          project_id: ${{ secrets.GKE_PROJECT }}
+      - uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          service_account_email: ${{ secrets.GKE_SA_EMAIL }}
+          service_account_key: ${{ secrets.GKE_SA_KEY }}
+          project_id: ${{ secrets.GKE_PROJECT }}
+
+      - name: Build Job Template
+        working-directory: ./word-count-beam
+        run: |-
+          gcloud dataflow flex-template build $TEMPLATE_PATH \
+            --image-gcr-path $TEMPLATE_IMAGE \
+            --sdk-language JAVA \
+            --flex-template-base-image JAVA8 \
+            --metadata-file ./spec/metadata.json \
+            --jar ./target/word-count-beam-bundled-0.1.jar \
+            --env FLEX_TEMPLATE_JAVA_MAIN_CLASS="org.apache.beam.examples.StreamingWordCount"
+
 #
 #      - name: Build
 #        run: |-
