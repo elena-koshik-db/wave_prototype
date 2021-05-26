@@ -30,7 +30,8 @@ jobs:
         working-directory: ./word-count-beam
         run: mvn --batch-mode --update-snapshots package -P dataflow-runner
 
-      - uses: google-github-actions/setup-gcloud@v0.2.1
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v0.2.1
         with:
           service_account_email: ${{ secrets.GKE_SA_EMAIL }}
           service_account_key: ${{ secrets.GKE_SA_KEY }}
