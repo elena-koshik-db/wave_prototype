@@ -53,5 +53,5 @@ jobs:
           gcloud dataflow flex-template run "$JOB_NAME_PREFIX-`date +%Y%m%d-%H%M%S`" \
               --template-file-gcs-location $TEMPLATE_PATH \
               --parameters inputTopic=$INPUT_TOPIC \
-              --staging-location $JOB_STAGING_LOCATION
+              --staging-location $JOB_STAGING_LOCATION \
               --region $REGION
