@@ -50,7 +50,7 @@ jobs:
 
       - name: Get job ID
         id: get-job-id
-        run: echo "::set-output name=job-id::$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --region=$REGION | sed -n '2s/^\([^ ]*\).*$/\1/p')"
+        run: echo "::set-output name=job-id::$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --limit=1 --region=$REGION --format='get(JOB_ID)')"
 
       - name: Stop active job
         if: steps.get-job-id.outputs.job-id != ''
@@ -59,7 +59,7 @@ jobs:
       - name: Wait for job completion
         if: steps.get-job-id.outputs.job-id != ''
         run: |-
-          while [ ! -z "$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --region=$REGION | sed -n '2s/^\([^ ]*\).*$/\1/p')" ]; do
+          while [ ! -z "$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --limit=1 --region=$REGION --format='get(JOB_ID)')" ]; do
             sleep 10s
           done
 
@@ -70,3 +70,17 @@ jobs:
               --parameters inputTopic=$INPUT_TOPIC \
               --staging-location $JOB_STAGING_LOCATION \
               --region $REGION
+
+      - name: Get new job ID
+        id: get-new-job-id
+        run: echo "::set-output name=job-id::$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --limit=1 --region=$REGION --format='get(JOB_ID)')"
+
+      - name: Wait for job start
+        if: steps.get-new-job-id.outputs.job-id != ''
+        run: |-
+          function get_status() {
+            echo "$(gcloud dataflow jobs show '${{ steps.get-new-job-id.outputs.job-id }}' --region=$REGION --format='get(state)')"
+          }
+          while [[ "$(get_status)" == 'Queued' || "$(get_status)" == 'Starting' ]]; do
+            sleep 10s
+          done
