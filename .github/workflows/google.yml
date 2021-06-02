@@ -80,8 +80,10 @@ jobs:
           function get_status() {
             echo "$(gcloud dataflow jobs show '${{ steps.start-job.outputs.job-id }}' --region=$REGION --format='get(state)')"
           }
-          while [[ "$(get_status)" == "Queued" || "$(get_status)" == "Starting" ]]; do
+          status="$(get_status)"
+          while [[ "$status" == "Queued" || "$status" == "Starting" || "$status" == "Pending" ]]; do
             sleep 10s
+            status="$(get_status)"
           done
           echo ::set-output name=job-status::"$(get_status)"
 
