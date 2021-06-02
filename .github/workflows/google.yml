@@ -64,19 +64,17 @@ jobs:
           done
 
       - name: Start a new job
+        id: start-job
         run: |-
-          gcloud dataflow flex-template run "$JOB_NAME_PREFIX-`date +%Y%m%d-%H%M%S`" \
+          echo ::set-output name=job-id::$(gcloud dataflow flex-template run "$JOB_NAME_PREFIX-`date +%Y%m%d-%H%M%S`" \
               --template-file-gcs-location $TEMPLATE_PATH \
               --parameters inputTopic=$INPUT_TOPIC \
               --staging-location $JOB_STAGING_LOCATION \
-              --region $REGION
-
-      - name: Get new job ID
-        id: get-new-job-id
-        run: echo "::set-output name=job-id::$(gcloud dataflow jobs list --filter=$JOB_NAME_PREFIX --status=active --limit=1 --region=$REGION --format='get(JOB_ID)')"
+              --region $REGION \
+              --format='get(job.id)')
 
       - name: Wait for job start
-        if: steps.get-new-job-id.outputs.job-id != ''
+        if: steps.start-job.outputs.job-id != ''
         run: |-
           function get_status() {
             echo "$(gcloud dataflow jobs show '${{ steps.get-new-job-id.outputs.job-id }}' --region=$REGION --format='get(state)')"
