@@ -30,7 +30,8 @@ public class StreamingWordCount {
         Pipeline pipeline = Pipeline.create(options);
 
         pipeline
-                .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+//                .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+                .apply("Read PubSub messages", PubsubIO.readStrings().fromSubscription("projects/sandbox-307310/subscriptions/pub-sub-subscription"))
                 .apply(Window.into(FixedWindows.of(Duration.standardMinutes(WINDOW_SIZE))))
                 .apply(new WordCount.CountWords())
                 .apply(MapElements.via(new WordCount.FormatAsTextFn()))
