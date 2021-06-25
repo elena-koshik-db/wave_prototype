@@ -15,7 +15,7 @@ import org.joda.time.Duration;
 import java.io.Serializable;
 
 public class DuplicatesFilter {
-    private static long WINDOW_SIZE_MIN = 10;
+    private static long WINDOW_SIZE_MIN = 20;
     static final String BUCKET_PATH = "gs://pub_sub_example/output/test";
 
     public interface Options extends StreamingOptions {
