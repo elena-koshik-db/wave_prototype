@@ -39,7 +39,7 @@ public class DuplicatesFilter {
         pipeline.run();
     }
 
-    public static class Filter extends PTransform<PCollection<String>, PCollection<Element>> {
+    public static class Filter extends PTransform<PCollection<String>, PCollection<String>> {
         private final long windowSizeMin;
 
         public Filter(long windowSizeMin) {
@@ -47,16 +47,16 @@ public class DuplicatesFilter {
         }
 
         @Override
-        public PCollection<Element> expand(PCollection<String> input) {
+        public PCollection<String> expand(PCollection<String> input) {
             return input
-                    .apply(MapElements.via(new SimpleFunction<String, Element>() {
-                        @Override
-                        public Element apply(String input) {
-                            return new Element(input);
-                        }
-                    }))
+//                    .apply(MapElements.via(new SimpleFunction<String, Element>() {
+//                        @Override
+//                        public Element apply(String input) {
+//                            return new Element(input);
+//                        }
+//                    }))
                     .apply(Window.into(FixedWindows.of(Duration.standardMinutes(windowSizeMin))))
-                    .apply(Distinct.withRepresentativeValueFn((SerializableFunction<Element, String>) input1 -> input1.id1));
+                    .apply(Distinct.create());
         }
     }
 
