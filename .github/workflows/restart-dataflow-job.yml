@@ -8,9 +8,9 @@ env:
   TEMPLATE_PATH: gs://pub_sub_example/samples/dataflow/templates/word-count-streaming-beam.json
   TEMPLATE_IMAGE: gcr.io/${{ secrets.GKE_PROJECT }}/samples/dataflow/word-count-streaming-beam:latest
   JOB_STAGING_LOCATION: gs://pub_sub_example/tmp_dir
-  INPUT_TOPIC: projects/${{ secrets.GKE_PROJECT }}/topics/job-topic
-  JOB_NAME_PREFIX: dataflow-flextemplate-job
-  MAIN_CLASS: org.apache.beam.examples.StreamingWordCount
+  INPUT_TOPIC: projects/${{ secrets.GKE_PROJECT }}/topics/filter-test-topic
+  JOB_NAME_PREFIX: duplicate-filter-test
+  MAIN_CLASS: org.apache.beam.examples.DuplicatesFilter
 
 jobs:
   setup-build-publish-deploy:
