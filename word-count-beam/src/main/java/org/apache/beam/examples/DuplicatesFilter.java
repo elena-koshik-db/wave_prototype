@@ -34,7 +34,7 @@ public class DuplicatesFilter {
                 .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
                 .apply(new Filter(WINDOW_SIZE_MIN))
                 .apply(ToString.elements())
-                .apply("Write Files to GCS", new WriteOneFilePerWindow(BUCKET_PATH, null));
+                .apply("Write Files to GCS", new WriteOneFilePerWindow(BUCKET_PATH, 1));
 
         pipeline.run();
     }
