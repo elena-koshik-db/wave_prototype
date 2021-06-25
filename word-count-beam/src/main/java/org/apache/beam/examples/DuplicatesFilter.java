@@ -12,6 +12,8 @@ import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
+import java.io.Serializable;
+
 public class DuplicatesFilter {
     private static long WINDOW_SIZE_MIN = 10;
     static final String BUCKET_PATH = "gs://pub_sub_example/output/test";
@@ -24,6 +26,8 @@ public class DuplicatesFilter {
     }
 
     static void runDuplicatesFilter(Options options) {
+        options.setStreaming(true);
+
         Pipeline pipeline = Pipeline.create(options);
 
         pipeline
@@ -52,11 +56,11 @@ public class DuplicatesFilter {
                         }
                     }))
                     .apply(Window.into(FixedWindows.of(Duration.standardMinutes(windowSizeMin))))
-                    .apply(Distinct.withRepresentativeValueFn(s -> s.id1));
+                    .apply(Distinct.withRepresentativeValueFn((SerializableFunction<Element, String>) input1 -> input1.id1));
         }
     }
 
-    public static class Element {
+    public static class Element implements Serializable {
         final String id1;
 
         public Element(String id1) {
