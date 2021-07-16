@@ -6,13 +6,12 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
-import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.Deduplicate;
+import org.apache.beam.sdk.transforms.ToString;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
-import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
-import java.io.Serializable;
 
 public class DuplicatesFilter {
     private static long WINDOW_SIZE_MIN = 20;
@@ -32,45 +31,12 @@ public class DuplicatesFilter {
 
         pipeline
                 .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
-                .apply(new Filter(WINDOW_SIZE_MIN))
+                .apply(Window.into(FixedWindows.of(Duration.standardMinutes(30))))
+                .apply(Deduplicate.<String>values().withDuration(Duration.standardMinutes(WINDOW_SIZE_MIN)))
                 .apply(ToString.elements())
                 .apply("Write Files to GCS", new WriteOneFilePerWindow(BUCKET_PATH, 1));
 
         pipeline.run();
-    }
-
-    public static class Filter extends PTransform<PCollection<String>, PCollection<String>> {
-        private final long windowSizeMin;
-
-        public Filter(long windowSizeMin) {
-            this.windowSizeMin = windowSizeMin;
-        }
-
-        @Override
-        public PCollection<String> expand(PCollection<String> input) {
-            return input
-//                    .apply(MapElements.via(new SimpleFunction<String, Element>() {
-//                        @Override
-//                        public Element apply(String input) {
-//                            return new Element(input);
-//                        }
-//                    }))
-                    .apply(Window.into(FixedWindows.of(Duration.standardMinutes(windowSizeMin))))
-                    .apply(Distinct.create());
-        }
-    }
-
-    public static class Element implements Serializable {
-        final String id1;
-
-        public Element(String id1) {
-            this.id1 = id1;
-        }
-
-        @Override
-        public String toString() {
-            return id1;
-        }
     }
 
     public static void main(String[] args) {
