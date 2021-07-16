@@ -31,10 +31,9 @@ public class DuplicatesFilter {
 
         pipeline
                 .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
-                .apply(Window.into(FixedWindows.of(Duration.standardMinutes(30))))
                 .apply(Deduplicate.<String>values().withDuration(Duration.standardMinutes(WINDOW_SIZE_MIN)))
                 .apply(ToString.elements())
-                .apply("Write Files to GCS", new WriteOneFilePerWindow(BUCKET_PATH, 1));
+                .apply(PubsubIO.writeStrings().to("projects/sandbox-307310/topics/filter-out"));
 
         pipeline.run();
     }
