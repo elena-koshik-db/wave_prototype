@@ -43,7 +43,7 @@ jobs:
       - name: Start a new job
         id: start-job
         run: |-
-          echo ::set-output name=job-id::$(gcloud dataflow flex-template run "$JOB_NAME_PREFIX-`date +%Y%m%d-%H%M%S`" \
+          echo ::set-output name=job-id::$(gcloud dataflow flex-template run "$JOB_NAME_PREFIX" \
               --template-file-gcs-location $TEMPLATE_PATH \
               --parameters inputTopic=$INPUT_TOPIC \
               --staging-location $JOB_STAGING_LOCATION \
