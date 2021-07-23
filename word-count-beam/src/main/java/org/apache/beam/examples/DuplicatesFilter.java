@@ -1,6 +1,5 @@
 package org.apache.beam.examples;
 
-import org.apache.beam.examples.common.WriteOneFilePerWindow;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.Description;
@@ -8,13 +7,11 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.transforms.Deduplicate;
 import org.apache.beam.sdk.transforms.ToString;
-import org.apache.beam.sdk.transforms.windowing.FixedWindows;
-import org.apache.beam.sdk.transforms.windowing.Window;
 import org.joda.time.Duration;
 
 
 public class DuplicatesFilter {
-    private static long WINDOW_SIZE_MIN = 20;
+    private static long WINDOW_SIZE_MIN = 60;
     static final String BUCKET_PATH = "gs://pub_sub_example/output/test";
 
     public interface Options extends StreamingOptions {
