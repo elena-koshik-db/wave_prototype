@@ -9,9 +9,8 @@ import org.apache.beam.sdk.options.StreamingOptions;
 import org.apache.beam.sdk.state.StateSpec;
 import org.apache.beam.sdk.state.StateSpecs;
 import org.apache.beam.sdk.state.ValueState;
-import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.ToString;
+import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.values.KV;
 
 
 public class DuplicatesFilter {
@@ -32,7 +31,19 @@ public class DuplicatesFilter {
 
         pipeline
                 .apply("Read PubSub messages", PubsubIO.readStrings().fromTopic(options.getInputTopic()))
+                .apply(MapElements.via(new SimpleFunction<String, KV<String, Void>>() {
+                    @Override
+                    public KV<String, Void> apply(String input) {
+                        return KV.of(input, (Void) null);
+                    }
+                }))
                 .apply(ParDo.of(new DeduplicateFn()))
+                .apply(MapElements.via(new SimpleFunction<KV<String, Void>, String>() {
+                    @Override
+                    public String apply(KV<String, Void> input) {
+                        return input.getKey();
+                    }
+                }))
 //                .apply(Deduplicate.<String>values().withDuration(Duration.standardMinutes(WINDOW_SIZE_MIN)))
                 .apply(ToString.elements())
                 .apply(PubsubIO.writeStrings().to("projects/sandbox-307310/topics/filter-out"));
@@ -40,7 +51,7 @@ public class DuplicatesFilter {
         pipeline.run();
     }
 
-    private static class DeduplicateFn extends DoFn<String, String> {
+    private static class DeduplicateFn extends DoFn<KV<String, Void>, KV<String, Void>> {
         private static final String EXPIRY_TIMER = "expiryTimer";
         private static final String SEEN_STATE = "seen";
 
@@ -52,8 +63,8 @@ public class DuplicatesFilter {
 
         @ProcessElement
         public void processElement(
-                @Element String element,
-                OutputReceiver<String> receiver,
+                @Element KV<String, Void> element,
+                OutputReceiver<KV<String, Void>> receiver,
                 @StateId(SEEN_STATE) ValueState<Boolean> seenState) {
 //                @TimerId(EXPIRY_TIMER) Timer expiryTimer) {
             Boolean seen = seenState.read();
@@ -62,7 +73,7 @@ public class DuplicatesFilter {
                 seenState.write(true);
                 receiver.output(element);
             } else {
-                receiver.output(element + "~~~");
+                receiver.output(KV.of(element.getKey() + "~~~", element.getValue()));
             }
         }
     }
